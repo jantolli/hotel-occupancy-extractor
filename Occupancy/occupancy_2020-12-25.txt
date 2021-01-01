@@ -1,0 +1,8 @@
+2021-01-10: Full Hotel! Price: $91
+
+Average Occupancy: 100.0%
+Average Price: $91.0
+Average Earnings: $91.0
+
+Today's Gross Earnings: $91.0
+Today's Net Earnings: $63.7

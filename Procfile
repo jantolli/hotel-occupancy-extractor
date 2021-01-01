@@ -1,0 +1,1 @@
+web: python rest-web-server.py -p $PORT -l 0.0.0.0

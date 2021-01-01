@@ -1,0 +1,22 @@
+2020-12-29: Full Hotel! Price: $91
+2020-12-31: Full Hotel! Price: $91
+2021-01-02: Full Hotel! Price: $91
+2021-01-04: 2 left. Price: $126
+2021-01-06: 1 left. Price: $126
+2021-01-08: Full Hotel! Price: $126
+2021-01-10: 2 left. Price: $98
+2021-01-12: 4 left. Price: $98
+2021-01-14: 4 left. Price: $98
+2021-01-16: 5 left. Price: $98
+2021-01-18: 1 left. Price: $98
+2021-01-20: 2 left. Price: $98
+2021-01-22: 2 left. Price: $98
+2021-01-24: 1 left. Price: $98
+2021-01-26: 1 left. Price: $98
+
+Average Occupancy: 81.44%
+Average Price: $102.2
+Average Earnings: $83.24
+
+Today's Gross Earnings: $91.0
+Today's Net Earnings: $63.7
