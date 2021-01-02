@@ -4,7 +4,6 @@ from StringIO import StringIO
 
 import datetime
 import os
-import requests, pickle
 import re
 import sys
 import urllib
@@ -13,18 +12,10 @@ import xml.etree.ElementTree as ET
 import gzip
 
 
-COOKIES_FILENAME = "cookies.txt"
 MAX = 9
 DEFAULT_PRICE = str(91)
+TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
 
-
-def save_cookies(requests_cookiejar):
-    with open(COOKIES_FILENAME, 'wb') as f:
-        pickle.dump(requests_cookiejar, f)
-
-def load_cookies():
-    with open(COOKIES_FILENAME, 'rb') as f:
-        return pickle.load(f)
 
 def get_url(checkin, checkout):
   checkin_date =  checkin.strftime("%Y-%m-%d")
@@ -36,43 +27,33 @@ def get_url(checkin, checkout):
 
 
 def get_response(checkin, checkout):
-  # user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
-  # accept = "*/*"
-  # host = "https://www.orbitz.com"
-  # accept_encoding = "gzip, deflate"
-  # headers = {'User-agent': user_agent, 'Accept': accept, 'Host': host, 'Accept-encoding': accept_encoding, 'Cookie': load_cookies()}
-  headers = {}
+  user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
+  accept = "*/*"
+  host = "www.orbitz.com"
+  accept_encoding = "gzip, deflate"
+  cookie = 'tpid=v.1,70201; iEAPID=0; currency=USD; linfo=v.4,|0|0|255|1|0||||||||1033|0|0||0|0|0|-1|-1; pwa_csrf=4a93c3ea-b929-4b65-8171-b6ecd4ee4faa|B1NdAsTMkMhu7gQNd-_SObG_W5SwQeglizyzN1MD-amtRRINQDzA1Qoh-rDHcMv-UQOPuJ_35fOyarGzv3Ficw; MC1=GUID=3c205013345c46d181a8188028654b77; DUAID=3c205013-345c-46d1-81a8-188028654b77; cesc=%7B%22marketingClick%22%3A%5B%22false%22%2C1605740386897%5D%2C%22hitNumber%22%3A%5B%222%22%2C1605740386897%5D%2C%22visitNumber%22%3A%5B%221%22%2C1605739583270%5D%2C%22entryPage%22%3A%5B%22page.Hotels.Infosite.Information%22%2C1605740386897%5D%7D'
+  headers = {'User-agent': user_agent, 'Accept': accept, 'Host': host, 'Accept-encoding': accept_encoding, 'Cookie': cookie}
   # print 'Going to ' + url
   url = get_url(checkin, checkout)
-  # req = urllib2.Request(url, {}, headers)
+  req = urllib2.Request(url, {}, headers)
   # print req.headers
-  # response = urllib2.urlopen(req)
-  print url
-  response = requests.get(url, headers).text
-  # return requests.get(url).text
-  # result = None
-  # if response.headers.get('Content-Encoding') == 'gzip':
-  #  stringbuffer = StringIO(response.text)
-  #  gzipbuffer = gzip.GzipFile(fileobj = stringbuffer)
-  #  result = gzipbuffer.read()
-  if response[:2] == '\x1f\x8b': # assume it's gzipped data
-    with GzipFile(mode='rb', fileobj=StringIO(s)) as ifh:
-      response = ifh.read()
-  
-  #else:
-  #result = response
-  # print response
-  return response
+  response = urllib2.urlopen(req)
+  result = None
+  if response.info().get('Content-Encoding') == 'gzip':
+    stringbuffer = StringIO(response.read())
+    gzipbuffer = gzip.GzipFile(fileobj = stringbuffer)
+    result = gzipbuffer.read()
+  return result
 
 
 def search_occupancy(checkin, length):
-  occupancy = open("Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt", "w")
+  occupancy = open(TODAY_FILENAME, "w")
   
   occupancy_array = []
   price_array = []
   price = DEFAULT_PRICE
   
-  for index in range(0, 1):
+  for index in range(0, 15):
     availabilty_index = MAX
     studio_room_index = MAX
     checkout = checkin + datetime.timedelta(length)
@@ -120,14 +101,15 @@ def search_occupancy(checkin, length):
   occupancy.write("Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n")
 
   occupancy.close()
+  print("Search Results saved to file " + TODAY_FILENAME)
 
 
+def main():
+  print("Starting search...")
+  checkin = date.today()
+  # checkin = datetime.date(2020, 1, 15)
+  search_occupancy(checkin, 2)
 
 
-#save cookies
-r = requests.get("https://www.orbitz.com")
-save_cookies(r.cookies)
-
-# checkin = date.today()
-checkin = datetime.date(2021, 01, 10)
-search_occupancy(checkin, 2)
+if __name__ == "__main__":
+    main()

@@ -93,7 +93,7 @@ def search_occupancy(checkin, length):
   occupancy.write("Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n")
 
   occupancy.close()
-  print("Search Results saved on file " + TODAY_FILENAME)
+  print("Search Results saved to file " + TODAY_FILENAME)
 
 
 def main():
