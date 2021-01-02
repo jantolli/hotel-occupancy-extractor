@@ -105,6 +105,7 @@ def search_occupancy(checkin, length):
 
 
 def main():
+  print("Current Working Dir: " + os.getcwd())
   r = requests.get('https://www.orbitz.com', headers=get_headers())
   cookies = r.cookies
   temp = []
