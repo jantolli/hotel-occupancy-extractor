@@ -17,7 +17,7 @@ import gzip
 
 MAX = 9
 DEFAULT_PRICE = str(91)
-TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
+TODAY_FILENAME = "occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
 COOKIES = dict()
 
 
