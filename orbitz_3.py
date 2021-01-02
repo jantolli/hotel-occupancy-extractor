@@ -18,7 +18,7 @@ import gzip
 MAX = 9
 DEFAULT_PRICE = str(91)
 TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
-COOKIES = None
+COOKIES = dict()
 
 
 def get_url(checkin, checkout):
@@ -106,8 +106,12 @@ def search_occupancy(checkin, length):
 
 def main():
   r = requests.get('https://www.orbitz.com', headers=get_headers())
-  COOKIES = r.cookies
-  print([(k, v) for k,v in COOKIES.items()])
+  cookies = r.cookies
+  temp = []
+  for key, val in cookies.items(): 
+    if val not in temp: 
+      temp.append(val) 
+      COOKIES[key] = val
 
   print("Starting search...")
   checkin = date.today()
