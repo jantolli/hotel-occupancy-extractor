@@ -47,7 +47,7 @@ def get_response(checkin, checkout):
   return response.text
 
 def search_occupancy(checkin, length):
-  occupancy = open(TODAY_FILENAME, "w")
+  occupancy = open(TODAY_FILENAME, "w", buffering=1)
   
   occupancy_array = []
   price_array = []
