@@ -54,7 +54,7 @@ def search_occupancy(checkin, length):
   price_array = []
   price = DEFAULT_PRICE
   
-  for index in range(0, 2):
+  for index in range(0, 15):
     availabilty_index = MAX
     studio_room_index = MAX
     checkout = checkin + datetime.timedelta(length)
