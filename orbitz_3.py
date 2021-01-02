@@ -17,6 +17,7 @@ import gzip
 
 MAX = 9
 DEFAULT_PRICE = str(91)
+TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
 
 def get_url(checkin, checkout):
   checkin_date =  checkin.strftime("%Y-%m-%d")
@@ -38,7 +39,7 @@ def get_response(checkin, checkout):
   return response.text
 
 def search_occupancy(checkin, length):
-  occupancy = open("Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt", "w")
+  occupancy = open(TODAY_FILENAME, "w")
   
   occupancy_array = []
   price_array = []
@@ -92,9 +93,15 @@ def search_occupancy(checkin, length):
   occupancy.write("Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n")
 
   occupancy.close()
+  print("Search Results saved on file " + TODAY_FILENAME)
 
 
 def main():
+  print("Starting search...")
   checkin = date.today()
   # checkin = datetime.date(2020, 1, 15)
   search_occupancy(checkin, 2)
+
+
+if __name__ == "__main__":
+    main()
