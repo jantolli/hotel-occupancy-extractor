@@ -107,6 +107,7 @@ def search_occupancy(checkin, length):
 def main():
   occupancy = open(TODAY_FILENAME, "w")
   occupancy.write("This is a test")
+  occupancy.flush()
   occupancy.close()
 
   print("Current Working Dir: " + os.getcwd())
