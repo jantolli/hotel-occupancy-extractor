@@ -18,16 +18,6 @@ import gzip
 MAX = 9
 DEFAULT_PRICE = str(91)
 TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
-COOKIES_FILENAME = "cookies.txt"
-
-
-def save_cookies(requests_cookiejar):
-    with open(COOKIES_FILENAME, 'wb') as f:
-        pickle.dump(requests_cookiejar, f)
-
-def load_cookies():
-    with open(COOKIES_FILENAME, 'rb') as f:
-        return pickle.load(f)
 
 def get_url(checkin, checkout):
   checkin_date =  checkin.strftime("%Y-%m-%d")
@@ -37,23 +27,15 @@ def get_url(checkin, checkout):
 
   return url
 
-def get_headers():
-  user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
-  accept = "*/*"
-  host = "www.orbitz.com"
-  accept_encoding = "deflate"
-  return {'User-agent': user_agent, 'Accept': accept, 'Host': host, 'Accept-encoding': accept_encoding}
-
 
 def get_response(checkin, checkout):
   user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
   accept = "*/*"
   host = "www.orbitz.com"
   accept_encoding = "deflate"
+  headers = {'User-agent': user_agent, 'Accept': accept, 'Host': host, 'Accept-encoding': accept_encoding}
   url = get_url(checkin, checkout)
-  cookies = {}
-  cookies.update(load_cookies())
-  response = requests.get(url, headers=get_headers(), cookies=cookies)
+  response = requests.get(url, headers=headers)
   return response.text
 
 def search_occupancy(checkin, length):
@@ -115,9 +97,6 @@ def search_occupancy(checkin, length):
 
 
 def main():
-  r = requests.get('https://www.orbitz.com', headers=get_headers())
-  save_cookies(r.cookies)
-
   print("Starting search...")
   checkin = date.today()
   # checkin = datetime.date(2020, 1, 15)
