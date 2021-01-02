@@ -43,7 +43,7 @@ def get_response(checkin, checkout):
   host = "www.orbitz.com"
   accept_encoding = "deflate"
   url = get_url(checkin, checkout)
-  response = requests.get(url, headers=get_headers(), cookies=COOKIES)
+  response = requests.get(url, headers=get_headers(), cookies=dict(COOKIES))
   return response.text
 
 def search_occupancy(checkin, length):
