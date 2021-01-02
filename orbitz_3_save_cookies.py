@@ -15,10 +15,10 @@ import urllib
 import xml.etree.ElementTree as ET
 import gzip
 
-
-COOKIES_FILENAME = "cookies.txt"
 MAX = 9
 DEFAULT_PRICE = str(91)
+TODAY_FILENAME = "Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
+COOKIES_FILENAME = "cookies.txt"
 
 
 def save_cookies(requests_cookiejar):
@@ -29,7 +29,6 @@ def load_cookies():
     with open(COOKIES_FILENAME, 'rb') as f:
         return pickle.load(f)
 
-
 def get_url(checkin, checkout):
   checkin_date =  checkin.strftime("%Y-%m-%d")
   checkout_date = checkout.strftime("%Y-%m-%d")
@@ -38,49 +37,27 @@ def get_url(checkin, checkout):
 
   return url
 
+def get_headers():
+  user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
+  accept = "*/*"
+  host = "www.orbitz.com"
+  accept_encoding = "deflate"
+  return {'User-agent': user_agent, 'Accept': accept, 'Host': host, 'Accept-encoding': accept_encoding}
+
 
 def get_response(checkin, checkout):
   user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
   accept = "*/*"
   host = "www.orbitz.com"
-  # accept_encoding = "gzip, deflate"
   accept_encoding = "deflate"
-  # print 'Going to ' + url
   url = get_url(checkin, checkout)
-  req = Request(url)
-  req.add_header('User-agent', user_agent)
-  req.add_header('Accept', accept)
-  req.add_header('Host', host)
-  req.add_header('Accept-encoding', accept_encoding)
-  req.add_header('Cookie', 'CRQS=t|70201`s|70201`l|en_US`c|USD')
-  req.add_header('Cookie', 'CRQSS=e|0')
-  req.add_header('Cookie', 'DUAID=4f1ef321-e04d-45a5-aabe-eeffc5d6395d')
-  req.add_header('Cookie', 'HMS=aa7e3045-4eea-4b20-950e-539d6b55619a')
-  req.add_header('Cookie', 'MC1=GUID=4f1ef321e04d45a5aabeeeffc5d6395d')
-  req.add_header('Cookie', 'accttype=')
-  req.add_header('Cookie', 'cesc=%7B%22marketingClick%22%3A%5B%22false%22%2C1609242441541%5D%2C%22hitNumber%22%3A%5B%221%22%2C1609242441541%5D%2C%22visitNumber%22%3A%5B%221%22%2C1609242441541%5D%2C%22entryPage%22%3A%5B%22page.Recaptcha%22%2C1609242441541%5D%7D')
-  req.add_header('Cookie', 'currency=USD')
-  req.add_header('Cookie', 'iEAPID=0')
-  req.add_header('Cookie', 'linfo=v.4,|0|0|255|1|0||||||||1033|0|0||0|0|0|-1|-1')
-  req.add_header('Cookie', 'minfo=')
-  req.add_header('Cookie', 'tpid=v.1,70201')
-  req.add_header('Cookie', 'user=')
-  req.add_header('Cookie', 'JSESSIONID=1D1B478D98EF35EAE16D6DF9E446B630')
-
-  # req.add_header('Cookie', load_cookies())
-  response = urlopen(req)
-  # req = urllib.request(url, {}, headers)
-  # print req.headers
-  #result = None
-  #if response.info().get('Content-Encoding') == 'gzip':
-  #  stringbuffer = io.StringIO(response.read())
-  #  gzipbuffer = gzip.GzipFile(fileobj = stringbuffer)
-  # result = gzipbuffer.read()
-  return response.read().decode('utf-8')
-
+  cookies = {}
+  cookies.update(load_cookies())
+  response = requests.get(url, headers=get_headers(), cookies=cookies)
+  return response.text
 
 def search_occupancy(checkin, length):
-  occupancy = open("Occupancy/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt", "w")
+  occupancy = open(TODAY_FILENAME, "w")
   
   occupancy_array = []
   price_array = []
@@ -92,6 +69,7 @@ def search_occupancy(checkin, length):
     checkout = checkin + datetime.timedelta(length)
     full_hotel = False
     html = get_response(checkin, checkout)
+    # print(html)
     try:
       studio_room_index = re.search("Superior Studio, Private Pool", html).start()
     except:
@@ -106,11 +84,10 @@ def search_occupancy(checkin, length):
     
 #   if "Superior Studio, Private Pool" in html:
     if x and studio_room_index <= availabilty_index:
-      rooms_left = x.group(1)
+      rooms_left = x.groups()[0]
       occupancy_array.append(MAX - int(rooms_left))
-      x = re.search(">\$(\d+) average per night</div>", html)
-#        x = re.search('<span class=\"uitk-cell loyalty-display-price all-cell-shrink\" data-stid="content-hotel-lead-price" aria-hidden=\"true\">\$(\d+)</span>', html)
-      price = x.group(1)
+      x = re.search('{\\\\"price\\\\":\\\\"\$(\d+)\\\\",\\\\"qualifier\\\\":\\\\" per night\\\\"', html)
+      price = x.groups()[0]
       price_array.append(int(price))
       occupancy.write(str(checkin) + ": " + rooms_left + " left. Price: $" + price + "\n")
     else:
@@ -134,12 +111,18 @@ def search_occupancy(checkin, length):
   occupancy.write("Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n")
 
   occupancy.close()
+  print("Search Results saved to file " + TODAY_FILENAME)
 
 
-#save cookies
-r = requests.get("https://www.orbitz.com")
-save_cookies(r.cookies)
+def main():
+  r = requests.get('https://www.orbitz.com', headers=get_headers())
+  save_cookies(r.cookies)
 
-checkin = date.today()
-# checkin = datetime.date(2020, 12, 18)
-search_occupancy(checkin, 2)
+  print("Starting search...")
+  checkin = date.today()
+  # checkin = datetime.date(2020, 1, 15)
+  search_occupancy(checkin, 2)
+
+
+if __name__ == "__main__":
+    main()
