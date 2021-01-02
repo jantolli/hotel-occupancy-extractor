@@ -1,6 +1,5 @@
 from __future__ import division
 from datetime import date
-from ftplib import FTP
 
 try:
     from urllib.request import Request, urlopen  # Python 3
@@ -19,11 +18,7 @@ import gzip
 
 MAX = 9
 DEFAULT_PRICE = str(91)
-FTP_HOST = 'joseantollini.no-ip.org'
-FTP_USERNAME = 'guest1'
-FTP_PASSWORD = '12guest34'
-FTP_DIR = '/WD1TB/Public/'
-FTP_FILENAME = 'occupancy_' + date.today().strftime('%Y-%m-%d') + '.txt'
+TODAY_FILENAME = "/tmp/occupancy_" + date.today().strftime("%Y-%m-%d") + ".txt"
 COOKIES = dict()
 
 
@@ -53,8 +48,8 @@ def get_response(checkin, checkout):
   return response.text
 
 def search_occupancy(checkin, length):
+  occupancy = open(TODAY_FILENAME, "w", buffering=1)
   
-  occupancy = ''
   occupancy_array = []
   price_array = []
   price = DEFAULT_PRICE
@@ -85,14 +80,14 @@ def search_occupancy(checkin, length):
       x = re.search('{\\\\"price\\\\":\\\\"\$(\d+)\\\\",\\\\"qualifier\\\\":\\\\" per night\\\\"', html)
       price = x.groups()[0]
       price_array.append(int(price))
-      occupancy += str(checkin) + ": " + rooms_left + " left. Price: $" + price + "\n"
+      occupancy.write(str(checkin) + ": " + rooms_left + " left. Price: $" + price + "\n")
     else:
       occupancy_array.append(MAX)
       price_array.append(int(price))
       if full_hotel:
-        occupancy += str(checkin) + ": Full Hotel! Price: $" + price + "\n"
+        occupancy.write(str(checkin) + ": Full Hotel! Price: $" + price + "\n")
       else:
-        occupancy += str(checkin) + ": Not Available. Price: $" + price + "\n"
+        occupancy.write(str(checkin) + ": Not Available. Price: $" + price + "\n")
 
     checkin = checkout
 
@@ -100,22 +95,22 @@ def search_occupancy(checkin, length):
   average_occupancy = round(sum(occupancy_array) / len(occupancy_array), 2)
   average_price = round(sum(price_array) / len(occupancy_array), 2)
   average_earnings = round(average_price*average_occupancy/MAX, 2)
-  occupancy += "\nAverage Occupancy: " + str(round(average_occupancy*100/MAX, 2)) + "%\n"
-  occupancy += "Average Price: $" + str(round(average_price, 2)) + "\n"
-  occupancy += "Average Earnings: $" + str(round(average_earnings, 2)) + "\n"
-  occupancy += "\nToday's Gross Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX, 2)) + "\n"
-  occupancy += "Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n"
+  occupancy.write("\nAverage Occupancy: " + str(round(average_occupancy*100/MAX, 2)) + "%\n")
+  occupancy.write("Average Price: $" + str(round(average_price, 2)) + "\n")
+  occupancy.write("Average Earnings: $" + str(round(average_earnings, 2)) + "\n")
+  occupancy.write("\nToday's Gross Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX, 2)) + "\n")
+  occupancy.write("Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n")
 
-
-  print('Opening FTP Connection ' + FTP_HOST)
-  ftp = FTP(FTP_HOST)
-  ftp.login(FTP_USERNAME, FTP_PASSWORD)
-  ftp.cwd(FTP_DIR)
-  ftp.storbinary('STOR ' + FTP_FILENAME, io.BytesIO(occupancy.encode('utf-8')))
-  print("Search Results saved to file " + FTP_DIR + "/" + FTP_FILENAME)
+  occupancy.close()
+  print("Search Results saved to file " + TODAY_FILENAME)
 
 
 def main():
+  occupancy = open(TODAY_FILENAME, "w")
+  occupancy.write("This is a test")
+  occupancy.flush()
+  occupancy.close()
+
   print("Current Working Dir: " + os.getcwd())
   r = requests.get('https://www.orbitz.com', headers=get_headers())
   cookies = r.cookies
