@@ -59,17 +59,36 @@ def search_occupancy(checkin, length):
   price_array = []
   price = DEFAULT_PRICE
   
-  for index in range(0, 15):
+  for index in range(0, 7):
     availabilty_index = MAX
     studio_room_index = MAX
+    luxury_suite_room_index = MAX
+    one_bedroom_room_index = MAX
+    two_bedroom_room_index = MAX
     checkout = checkin + datetime.timedelta(length)
     full_hotel = False
     html = get_response(checkin, checkout)
     # print(html)
+
     try:
       studio_room_index = re.search("Superior Studio, Private Pool", html).start()
     except:
       print("No Studio Found. Setting to Not Available")
+      
+    try:
+      luxury_suite_room_index = re.search("Luxury Suite, Private Pool", html).start()
+    except:
+      print("No Luxury Suite Room Found. Setting to Not Available")
+
+    try:
+      one_bedroom_room_index = re.search("Luxury Apartment, 1 Bedroom, Private Pool", html).start()
+    except:
+      print("No One Bedroom Apartment Found. Setting to Not Available")
+      
+    try:
+      two_bedroom_room_index = re.search("Family Penthouse, 2 Bedrooms, Private Pool", html).start()
+    except:
+      print("No Two Bedroom Apartment Found. Setting to Not Available")
 
     x = re.search("We have (\d+) left", html)
     try:
@@ -78,33 +97,44 @@ def search_occupancy(checkin, length):
       full_hotel = True
       print("Yayy full hotel on " + str(checkin))
     
-#   if "Superior Studio, Private Pool" in html:
-    if x and studio_room_index <= availabilty_index:
-      rooms_left = x.groups()[0]
-      occupancy_array.append(MAX - int(rooms_left))
-      x = re.search('{\\\\"price\\\\":\\\\"\$(\d+)\\\\",\\\\"qualifier\\\\":\\\\" per night\\\\"', html)
-      price = x.groups()[0]
-      price_array.append(int(price))
-      occupancy += str(checkin) + ": " + rooms_left + " left. Price: $" + price + "\n"
-    else:
+    # if "Superior Studio, Private Pool" in html:
+    # Checking Full Hotel or studio not available
+    if studio_room_index > availabilty_index or full_hotel:
       occupancy_array.append(MAX)
       price_array.append(int(price))
       if full_hotel:
         occupancy += str(checkin) + ": Full Hotel! Price: $" + price + "\n"
       else:
         occupancy += str(checkin) + ": Not Available. Price: $" + price + "\n"
+    # Checking for not available occupancy information for the studio
+    elif luxury_suite_room_index <= availabilty_index or one_bedroom_room_index <= availabilty_index or two_bedroom_room_index <= availabilty_index:
+      print('No indication of rooms left. Setting it to maximum unfortnately')   
+      occupancy_array.append(0)
+      x = re.search('{\\\\"price\\\\":\\\\"\$(\d+)\\\\",\\\\"qualifier\\\\":\\\\" per night\\\\"', html)
+      price = x.groups()[0]
+      price_array.append(int(price))
+      occupancy += str(checkin) + ": " + str(MAX) + " left. Price: $" + price + "\n"
+    # There is occupancy information for the studio
+    else:
+      rooms_left = x.groups()[0]
+      occupancy_array.append(MAX - int(rooms_left))
+      x = re.search('{\\\\"price\\\\":\\\\"\$(\d+)\\\\",\\\\"qualifier\\\\":\\\\" per night\\\\"', html)
+      price = x.groups()[0]
+      price_array.append(int(price))
+      occupancy += str(checkin) + ": " + rooms_left + " left. Price: $" + price + "\n"
 
     checkin = checkout
 
 #  print(price_array)
-  average_occupancy = round(sum(occupancy_array) / len(occupancy_array), 2)
+  average_occupancy = (round(sum(occupancy_array) / len(occupancy_array), 2))
   average_price = round(sum(price_array) / len(occupancy_array), 2)
   average_earnings = round(average_price*average_occupancy/MAX, 2)
+  print(average_occupancy)
   occupancy += "\nAverage Occupancy: " + str(round(average_occupancy*100/MAX, 2)) + "%\n"
   occupancy += "Average Price: $" + str(round(average_price, 2)) + "\n"
   occupancy += "Average Earnings: $" + str(round(average_earnings, 2)) + "\n"
-  occupancy += "\nToday's Gross Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX, 2)) + "\n"
-  occupancy += "Today's Net Earnings: $" + str(round(price_array[0]*occupancy_array[0]/MAX*0.7, 2)) + "\n"
+  occupancy += "\nToday's Gross Earnings: $" + str(round(price_array[0]*(occupancy_array[0])/MAX, 2)) + "\n"
+  occupancy += "Today's Net Earnings: $" + str(round(price_array[0]*(occupancy_array[0])/MAX*0.7, 2)) + "\n"
 
 
   print('Opening FTP Connection ' + FTP_HOST)
@@ -127,7 +157,7 @@ def main():
 
   print("Starting search...")
   checkin = date.today()
-  # checkin = datetime.date(2020, 1, 15)
+  # checkin = datetime.date(2021, 1, 29)
   search_occupancy(checkin, 2)
 
 
