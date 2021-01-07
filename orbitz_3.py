@@ -129,7 +129,6 @@ def search_occupancy(checkin, length):
   average_occupancy = (round(sum(occupancy_array) / len(occupancy_array), 2))
   average_price = round(sum(price_array) / len(occupancy_array), 2)
   average_earnings = round(average_price*average_occupancy/MAX, 2)
-  print(average_occupancy)
   occupancy += "\nAverage Occupancy: " + str(round(average_occupancy*100/MAX, 2)) + "%\n"
   occupancy += "Average Price: $" + str(round(average_price, 2)) + "\n"
   occupancy += "Average Earnings: $" + str(round(average_earnings, 2)) + "\n"
